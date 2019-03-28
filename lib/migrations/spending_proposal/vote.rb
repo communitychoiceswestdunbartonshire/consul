@@ -1,5 +1,5 @@
 class Migrations::SpendingProposal::Vote
-  include Migrations::Log
+  include Migrations::SpendingProposal::Common
 
   def create_budget_investment_votes
     spending_proposal_votes.each do |vote|
@@ -10,11 +10,7 @@ class Migrations::SpendingProposal::Vote
   private
 
     def spending_proposal_votes
-      Vote.where(votable: SpendingProposal.all)
-    end
-
-    def find_budget_investment(spending_proposal)
-      Budget::Investment.where(original_spending_proposal_id: spending_proposal.id).first
+      ::Vote.where(votable: SpendingProposal.all)
     end
 
     def create_budget_invesment_vote(vote)

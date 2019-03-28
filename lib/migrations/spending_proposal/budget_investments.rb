@@ -1,4 +1,6 @@
 class Migrations::SpendingProposal::BudgetInvestments
+  include Migrations::SpendingProposal::Common
+
   attr_accessor :spending_proposals
 
   def initialize

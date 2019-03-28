@@ -1,11 +1,11 @@
 class Migrations::SpendingProposal::BudgetInvestment
-  include Migrations::Log
+  include Migrations::SpendingProposal::Common
 
   attr_accessor :spending_proposal, :budget_investment
 
   def initialize(spending_proposal)
     @spending_proposal = spending_proposal
-    @budget_investment = find_budget_investment
+    @budget_investment = find_budget_investment(spending_proposal)
   end
 
   def update
@@ -17,14 +17,6 @@ class Migrations::SpendingProposal::BudgetInvestment
   end
 
   private
-
-    def budget
-      Budget.where(slug: "2016").first
-    end
-
-    def find_budget_investment
-      budget.investments.where(original_spending_proposal_id: spending_proposal.id).first
-    end
 
     def updated?
       if budget_investment.blank?

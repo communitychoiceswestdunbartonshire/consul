@@ -1,4 +1,6 @@
 class Migrations::SpendingProposal::Ballots
+  include Migrations::SpendingProposal::Common
+
   attr_accessor :spending_proposal_ballots
 
   def initialize

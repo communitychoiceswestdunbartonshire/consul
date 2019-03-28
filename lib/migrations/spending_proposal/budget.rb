@@ -1,19 +1,26 @@
 require_dependency "spending_proposal"
 
 class Migrations::SpendingProposal::Budget
-  attr_accessor :budget
+  include Migrations::SpendingProposal::Common
 
-  def initialize
-    @budget = find_budget
+  def migrate
+    setup
+    migrate_data
+    expire_caches
   end
 
-  def pre_rake_tasks
+  def setup
     update_heading_price
     update_heading_population
-    update_selected_investments
   end
 
-  def post_rake_tasks
+  def migrate_data
+    migrate_budget_investments
+    migrate_votes
+    migrate_ballots
+  end
+
+  def expire_caches
     update_cached_votes
     update_cached_ballots
     calculate_winners
@@ -21,45 +28,38 @@ class Migrations::SpendingProposal::Budget
 
   private
 
+    def migrate_budget_investments
+      #log("We have #{SpendingProposal.count} spending proposals")
+      #log("Migrating!!...")
+      #SpendingProposal.find_each { |sp| MigrateSpendingProposalsToInvestments.new.import(sp) }
+      #log("And now we've got #{Budget.where(name: '2016').first.investments.count} budgets")
+
+      update_selected_investments
+
+      Migrations::SpendingProposal::BudgetInvestments.new.update_all
+    end
+
+    def migrate_votes
+      Migrations::SpendingProposal::Vote.new.create_budget_investment_votes
+    end
+
+    def migrate_ballots
+      Migrations::SpendingProposal::Ballots.new.migrate_all
+    end
+
     def update_heading_price
       update_city_heading_price
       update_district_heading_price
     end
 
     def update_city_heading_price
-      budget.headings.where(name: "Toda la ciudad").first&.update(price: 24000000)
+      budget.headings.where(name: city_heading).first&.update(price: city_price)
     end
 
     def update_district_heading_price
       price_by_heading.each do |heading_name, price|
         budget.headings.where(name: heading_name).first&.update(price: price)
       end
-    end
-
-    def price_by_heading
-      {
-        "Arganzuela"          => 1556169,
-        "Barajas"             => 433589,
-        "Carabanchel"         => 3247830,
-        "Centro"              => 1353966,
-        "Chamartín"           => 1313747,
-        "Chamberí"            => 1259587,
-        "Ciudad Lineal"       => 2287757,
-        "Fuencarral-El Pardo" => 2441608,
-        "Hortaleza"           => 1827228,
-        "Latina"              => 2927200,
-        "Moncloa-Aravaca"     => 1129851,
-        "Moratalaz"           => 1067341,
-        "Puente de Vallecas"  => 3349186,
-        "Retiro"              => 1075155,
-        "Salamanca"           => 1286657,
-        "San Blas-Canillejas" => 1712043,
-        "Tetuán"              => 1677256,
-        "Usera"               => 1923216,
-        "Vicálvaro"           => 879529,
-        "Villa de Vallecas"   => 1220810,
-        "Villaverde"          => 2030275
-      }
     end
 
     def update_heading_population
@@ -79,32 +79,6 @@ class Migrations::SpendingProposal::Budget
 
     def city_population
       population_by_heading.collect {|district, population| population}.sum
-    end
-
-    def population_by_heading
-      {
-        "Arganzuela"          => 131429,
-        "Barajas"             =>  37725,
-        "Carabanchel"         => 205197,
-        "Centro"              => 120867,
-        "Chamartín"           => 123099,
-        "Chamberí"            => 122280,
-        "Ciudad Lineal"       => 184285,
-        "Fuencarral-El Pardo" => 194232,
-        "Hortaleza"           => 146471,
-        "Latina"              => 204427,
-        "Moncloa-Aravaca"     =>  99274,
-        "Moratalaz"           =>  82741,
-        "Puente de Vallecas"  => 194314,
-        "Retiro"              => 103666,
-        "Salamanca"           => 126699,
-        "San Blas-Canillejas" => 127800,
-        "Tetuán"              => 133972,
-        "Usera"               => 112158,
-        "Vicálvaro"           =>  55783,
-        "Villa de Vallecas"   =>  82504,
-        "Villaverde"          => 117478
-      }
     end
 
     def update_selected_investments
@@ -128,15 +102,6 @@ class Migrations::SpendingProposal::Budget
       budget.headings.each do |heading|
         Budget::Result.new(budget, heading).calculate_winners
       end
-    end
-
-
-    def find_budget_investment(spending_proposal)
-      budget.investments.where(original_spending_proposal_id: spending_proposal.id).first
-    end
-
-    def find_budget
-      ::Budget.where(slug: 2016).first
     end
 
 end

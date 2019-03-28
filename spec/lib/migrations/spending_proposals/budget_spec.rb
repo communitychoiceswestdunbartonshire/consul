@@ -4,18 +4,17 @@ require "migrations/spending_proposal/budget"
 describe Migrations::SpendingProposal::Budget do
 
   let!(:budget) { create(:budget, slug: "2016") }
+  let(:migration) { Migrations::SpendingProposal::Budget.new }
 
   describe "#initialize" do
 
     it "initializes the budget to be migrated" do
-      migration = Migrations::SpendingProposal::Budget.new
-
       expect(migration.budget).to eq(budget)
     end
 
   end
 
-  describe "#pre_rake_tasks" do
+  describe "#setup" do
 
     let!(:city_group)   { create(:budget_group, budget: budget) }
     let!(:city_heading) { create(:budget_heading, group: city_group, name: "Toda la ciudad") }
@@ -27,16 +26,14 @@ describe Migrations::SpendingProposal::Budget do
     context "heading price" do
 
       it "updates the city heading's price" do
-        migration = Migrations::SpendingProposal::Budget.new
-        migration.pre_rake_tasks
+        migration.setup
 
         city_heading.reload
         expect(city_heading.price).to eq(24000000)
       end
 
       it "updates the district headings' price" do
-        migration = Migrations::SpendingProposal::Budget.new
-        migration.pre_rake_tasks
+        migration.setup
 
         district_heading1.reload
         district_heading2.reload
@@ -48,16 +45,14 @@ describe Migrations::SpendingProposal::Budget do
     context "heading population" do
 
       it "updates the city heading's population" do
-        migration = Migrations::SpendingProposal::Budget.new
-        migration.pre_rake_tasks
+        migration.setup
 
         city_heading.reload
         expect(city_heading.population).to eq(2706401)
       end
 
       it "updates the district headings' population" do
-        migration = Migrations::SpendingProposal::Budget.new
-        migration.pre_rake_tasks
+        migration.setup
 
         district_heading1.reload
         district_heading2.reload
@@ -67,21 +62,26 @@ describe Migrations::SpendingProposal::Budget do
 
     end
 
-    context "selected investments" do
+  end
 
-      let!(:spending_proposal1) { create(:spending_proposal, feasible: true, valuation_finished: true) }
-      let!(:spending_proposal2) { create(:spending_proposal, feasible: true, valuation_finished: true) }
-      let!(:spending_proposal3) { create(:spending_proposal, feasible: true, valuation_finished: false) }
-      let!(:spending_proposal4) { create(:spending_proposal, feasible: false, valuation_finished: true) }
+  describe "migrate" do
 
-      let!(:budget_investment1) { create(:budget_investment, budget: budget, original_spending_proposal_id: spending_proposal1.id) }
-      let!(:budget_investment2) { create(:budget_investment, budget: budget, original_spending_proposal_id: spending_proposal2.id) }
-      let!(:budget_investment3) { create(:budget_investment, budget: budget, original_spending_proposal_id: spending_proposal3.id) }
-      let!(:budget_investment4) { create(:budget_investment, budget: budget, original_spending_proposal_id: spending_proposal4.id) }
+    context "Migrate budget investments" do
+
+      it "migrates budget investments"
 
       it "marks feasible and valuation finished investments as selected" do
-        migration = Migrations::SpendingProposal::Budget.new
-        migration.pre_rake_tasks
+        spending_proposal1 = create(:spending_proposal, :feasible, :finished)
+        spending_proposal2 = create(:spending_proposal, :feasible, :finished)
+        spending_proposal3 = create(:spending_proposal, :feasible, :unfinished)
+        spending_proposal4 = create(:spending_proposal, :unfeasible, :finished)
+
+        budget_investment1 = create(:budget_investment, budget: budget, spending_proposal: spending_proposal1)
+        budget_investment2 = create(:budget_investment, budget: budget, spending_proposal: spending_proposal2)
+        budget_investment3 = create(:budget_investment, budget: budget, spending_proposal: spending_proposal3)
+        budget_investment4 = create(:budget_investment, budget: budget, spending_proposal: spending_proposal4)
+
+        migration.migrate_data
 
         budget_investment1.reload
         budget_investment2.reload
@@ -95,9 +95,13 @@ describe Migrations::SpendingProposal::Budget do
       end
 
     end
+
+    it "migrates votes"
+    it "migrates ballots"
+
   end
 
-  describe "#post_rake_tasks" do
+  describe "#expire_caches" do
 
     let!(:group)   { create(:budget_group, budget: budget) }
     let!(:heading) { create(:budget_heading, group: group, price: 99999999) }
@@ -113,8 +117,7 @@ describe Migrations::SpendingProposal::Budget do
       investment.reload
       expect(investment.cached_votes_up).to eq(3)
 
-      migration = Migrations::SpendingProposal::Budget.new
-      migration.post_rake_tasks
+      migration.expire_caches
 
       investment.reload
       expect(investment.cached_votes_up).to eq(2)
@@ -134,8 +137,7 @@ describe Migrations::SpendingProposal::Budget do
       investment.reload
       expect(investment.ballot_lines_count).to eq(3)
 
-      migration = Migrations::SpendingProposal::Budget.new
-      migration.post_rake_tasks
+      migration.expire_caches
 
       investment.reload
       expect(investment.ballot_lines_count).to eq(2)
@@ -154,8 +156,7 @@ describe Migrations::SpendingProposal::Budget do
       results = Budget::Result.new(budget, heading)
       expect(results.winners.count).to eq(0)
 
-      migration = Migrations::SpendingProposal::Budget.new
-      migration.post_rake_tasks
+      migration.expire_caches
 
       expect(results.winners.count).to eq(3)
     end

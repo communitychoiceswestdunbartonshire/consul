@@ -2,7 +2,7 @@ require_dependency "budget"
 require_dependency "budget/ballot"
 
 class Migrations::SpendingProposal::Ballot
-  include Migrations::Log
+  include Migrations::SpendingProposal::Common
 
   attr_accessor :spending_proposal_ballot, :budget_investment_ballot, :represented_user
 
@@ -43,14 +43,6 @@ class Migrations::SpendingProposal::Ballot
   end
 
   private
-
-    def budget
-      Budget.where(slug: "2016").first
-    end
-
-    def find_budget_investment(spending_proposal)
-      budget.investments.where(original_spending_proposal_id: spending_proposal.id).first
-    end
 
     def find_or_initialize_budget_investment_ballot
       Budget::Ballot.find_or_initialize_by(budget_investment_ballot_attributes)
