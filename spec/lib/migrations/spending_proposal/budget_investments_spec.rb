@@ -46,7 +46,5 @@ describe Migrations::SpendingProposal::BudgetInvestments do
       expect(budget_investment1.unfeasibility_explanation).to eq(explanation1)
       expect(budget_investment2.unfeasibility_explanation).to eq(explanation2)
     end
-
   end
-
 end

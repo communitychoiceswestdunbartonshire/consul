@@ -59,9 +59,7 @@ describe Migrations::SpendingProposal::Budget do
         expect(district_heading1.population).to eq(131429)
         expect(district_heading2.population).to eq(37725)
       end
-
     end
-
   end
 
   describe "migrate" do

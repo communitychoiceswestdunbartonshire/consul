@@ -10,6 +10,7 @@ class Migrations::SpendingProposal::Budget
   end
 
   def setup
+    initial_rake_task
     update_heading_price
     update_heading_population
   end
@@ -28,14 +29,14 @@ class Migrations::SpendingProposal::Budget
 
   private
 
+    def initial_rake_task
+      log("Starting to migrate spending proposals to budget investments")
+      SpendingProposal.find_each { |sp| MigrateSpendingProposalsToInvestments.new.import(sp) }
+      log("Finished")
+    end
+
     def migrate_budget_investments
-      #log("We have #{SpendingProposal.count} spending proposals")
-      #log("Migrating!!...")
-      #SpendingProposal.find_each { |sp| MigrateSpendingProposalsToInvestments.new.import(sp) }
-      #log("And now we've got #{Budget.where(name: '2016').first.investments.count} budgets")
-
       update_selected_investments
-
       Migrations::SpendingProposal::BudgetInvestments.new.update_all
     end
 

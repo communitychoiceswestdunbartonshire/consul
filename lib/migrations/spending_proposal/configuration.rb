@@ -1,19 +1,27 @@
-### This is the configuration file for your migration from a Spending Proposals budget
-### To a Budget Investments budget
-### The values that you see are the ones that we have used in Madrid's fork
+### This is the configuration file to migrate spending proposals to budget investments
+### The values that you see are the ones used in Madrid's fork.
 ### Please update them accordingly for your city.
 
 module Migrations::SpendingProposal::Configuration
 
   # Name you want to give to the budget that you are migrating.
+  def budget_name
+    "2016"
+  end
+
+  # Budget to be created
   def budget
-    ::Budget.where(slug: "2016").first
+    ::Budget.where(slug: budget_name).first
   end
 
   # This is a special heading, that many forks use to represent their City Heading.
-  # Leave blank if you do not have a City Heading.
   def city_heading
     "Toda la ciudad"
+  end
+
+  # The name for the disticts group
+  def districts_heading
+    "Distritos"
   end
 
   # Total money avaiable for the City Heading.
