@@ -136,6 +136,8 @@ en:
         external_code: "External code (optional)"
         census_code: "Census code (optional)"
         html_map_coordinates: "HTML <map> Coordinates (optional)"
+      budget/group:
+        limit_voting_on_budget: Voter can't exceed heading budget
       milestone:
         status_id: "Current status (optional)"
         title: "Title"
