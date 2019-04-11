@@ -27,6 +27,9 @@
       </ul>
     </div>
 
+    <%= form_for @residence, as: "residence", url: residence_path do |f| %>
+      <%= render "errors" %>
+
       <div class="date-of-birth small-12 medium-6 clear">
       <%= f.label t("verification.residence.new.date_of_birth") %>
       <%= f.date_select :date_of_birth,
