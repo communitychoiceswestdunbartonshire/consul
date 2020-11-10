@@ -1582,6 +1582,7 @@ ActiveRecord::Schema.define(version: 20190330055614) do
     t.datetime "updated_at",             null: false
   end
 
+
   add_foreign_key "administrators", "users"
   add_foreign_key "budget_investments", "communities"
   add_foreign_key "documents", "users"
